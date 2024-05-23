@@ -1,0 +1,6 @@
+ttyS0::sysinit:/sbin/openrc sysinit
+ttyS0::sysinit:/sbin/openrc boot
+ttyS0::wait:/sbin/openrc default
+tty1::respawn:/bin/bash
+ttyS2::respawn:/bin/bash
+

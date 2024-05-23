@@ -1,0 +1,6 @@
+#!/bin/sh
+
+saved_attrs=$(stty -g)
+trap 'echo "restoring terminal state"; stty "$saved_attrs"' EXIT
+echo "use ^X to disconnect" >&2
+stty intr  susp '' quit '' -icanon -echo && socat - unix-connect:/consoles/$1
