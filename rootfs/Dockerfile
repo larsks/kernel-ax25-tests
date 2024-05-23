@@ -16,10 +16,12 @@ RUN apk update && \
     socat \
     netcat-openbsd
 
-RUN bash <<EOF
-rc-update add sshd default
-rc-update add localmount
-EOF
-
 COPY etc/ /etc/
 COPY init /init
+
+RUN bash <<EOF
+rc-update add sshd default
+rc-update add install-ssh-keys default
+EOF
+
+RUN sed -i '/#?PermitRootLogin/ s/.*/PermitRootLogin prohibit-password' /etc/ssh/sshd_config

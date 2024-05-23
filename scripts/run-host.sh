@@ -30,7 +30,7 @@ qemu-system-x86_64 \
 	-enable-kvm -m 1g \
 	-kernel "$ax25_kernel" \
 	-initrd "$ax25_initrd" \
-	-append "hostname=${hostname} ip=${ipaddr}:::255.255.255.0:${hostname}::off console=ttyS0,115200 no_timer_check net.ifnames=0 rw${KERNEL_ARGS:+ ${KERNEL_ARGS}}" \
+	-append "hostname=${hostname} ip=${ipaddr}::192.168.168.1:255.255.255.0:${hostname}::off console=ttyS0,115200 no_timer_check net.ifnames=0 rw${KERNEL_ARGS:+ ${KERNEL_ARGS}}" \
 	-nographic \
 	-serial "file:/results/${hostname}-console.log" \
 	-serial "file:/results/${hostname}-output.log" \

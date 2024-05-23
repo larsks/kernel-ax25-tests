@@ -1,0 +1,4 @@
+#!/bin/bash
+
+mkmntdirs /etc/fstab
+mount -a

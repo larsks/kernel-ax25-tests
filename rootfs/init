@@ -1,6 +1,4 @@
 #!/bin/sh
 
 mount -t devtmpfs none /dev
-mkdir /dev/pts
-mount -t devpts none /dev/pts
 exec /sbin/init
