@@ -23,7 +23,7 @@ while getopts r:b:a:nk: ch; do
 	b)
 		# map a local directory to a 9p filesystem
 		# usage: -b <path>:<tag>[:<security_model>]
-		IFS=: read -r -a bindspec <<<"$OPTARG"
+		mapfile -d: -t bindspec < <(echo -n "$OPTARG")
 		bindsrc=${bindspec[0]}
 		bindtag=${bindspec[1]}
 		secmodel=${bindspec[2]:-none}
