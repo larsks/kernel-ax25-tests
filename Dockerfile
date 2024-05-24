@@ -9,7 +9,8 @@ RUN apk add \
   netcat-openbsd \
   openssh \
   qemu-system-x86_64 \
-  socat
+  socat \
+  tcpdump
 
 RUN bash <<EOF
 mkdir -m 700 -p /root/.ssh
