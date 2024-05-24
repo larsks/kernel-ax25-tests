@@ -2,20 +2,25 @@
 
 set -eu
 
+fwcfg=()
+fwcfg_args=()
 fsdev_args=()
 network_args=()
 net_user=1
 kernel_extra_args=""
-rootfs="boot/initrd"
+initrd="boot/initrd"
 kernel="boot/vmlinuz"
 
-while getopts r:b:a:nk: ch; do
+while getopts i:b:a:nk:f: ch; do
 	case $ch in
+	f)
+		fwcfg+=("$OPTARG")
+		;;
 	k)
 		kernel=$OPTARG
 		;;
-	r)
-		rootfs=$OPTARG
+	i)
+		initrd=$OPTARG
 		;;
 	n)
 		net_user=0
@@ -47,11 +52,18 @@ if ((net_user)); then
 	network_args+=(-nic "user,model=virtio-net-pci")
 fi
 
+for x in "${fwcfg[@]}"; do
+	fwcfg_name=${x%%=*}
+	fwcfg_val=${x#*=}
+	fwcfg_args+=(-fw_cfg "name=$fwcfg_name,string=$fwcfg_val")
+done
+
 exec qemu-system-x86_64 -enable-kvm -m 4g \
 	-kernel "$kernel" \
 	-append "hostname=linux console=tty0 console=ttyS0,115200 no_timer_check net.ifnames=0 rw ${kernel_extra_args}" \
-	-initrd "$rootfs" \
+	-initrd "$initrd" \
 	-smp 2 \
+	"${fwcfg_args[@]}" \
 	"${network_args[@]}" \
 	"${fsdev_args[@]}" \
 	"$@"

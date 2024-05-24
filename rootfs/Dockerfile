@@ -27,4 +27,5 @@ RUN bash <<EOF
 rc-update add sshd default
 rc-update add install-ssh-keys default
 rc-update add mount9p default
+rc-update add bashtty default
 EOF

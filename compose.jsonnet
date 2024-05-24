@@ -38,8 +38,7 @@ function(num_hosts=2)
     },
     command: [
       'bash',
-      '/scripts/run-host.sh',
-      '%d' % (1000 + index),
+      '/scripts/start-host.sh',
       'host%d' % (index),
       '192.168.168.%d' % (10 + index),
     ],
