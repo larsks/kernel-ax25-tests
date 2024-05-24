@@ -1,5 +1,5 @@
 ttyS0::sysinit:/etc/init.d/sysinit
 ttyS0::wait:/sbin/openrc default
 tty1::respawn:/bin/bash
-ttyS2::respawn:/bin/bash
+ttyS0::respawn:/bin/bash
 

@@ -15,7 +15,8 @@ RUN apk update && \
     openrc \
     socat \
     netcat-openbsd \
-    python3
+    python3 \
+    util-linux
 
 RUN sed -i '/^#\?PermitRootLogin/ s/.*/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config
 
@@ -25,4 +26,5 @@ COPY init /init
 RUN bash <<EOF
 rc-update add sshd default
 rc-update add install-ssh-keys default
+rc-update add mount9p default
 EOF
