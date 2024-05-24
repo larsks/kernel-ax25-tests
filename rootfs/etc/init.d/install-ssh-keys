@@ -7,8 +7,8 @@ depends() {
 start() {
 	mkdir -m 700 /root/.ssh
 
-	if [ -f /tests/id_rsa.pub ]; then
-		cat /tests/id_rsa.pub >>/root/.ssh/authorized_keys
+	if [ -f /state/id_rsa.pub ]; then
+		cat /state/id_rsa.pub >>/root/.ssh/authorized_keys
 		chmod 600 /root/.ssh/authorized_keys
 	fi
 }

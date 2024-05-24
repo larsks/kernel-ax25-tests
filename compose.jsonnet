@@ -1,5 +1,8 @@
 function(num_hosts=2)
   local common = {
+    environment: {
+      ax25_num_hosts: '%d' % num_hosts,
+    },
     build: {
       context: '.',
     },
@@ -16,14 +19,14 @@ function(num_hosts=2)
       './boot:/boot',
       './tests:/tests',
       'results:/results',
-      'consoles:/consoles',
+      'state:/state',
     ],
+    restart: 'always',
   };
 
   local host(index) = common {
     network_mode: 'service:infra',
-    environment: {
-      ax25_num_hosts: '%d' % num_hosts,
+    environment+: {
       ax25_host_index: '%d' % index,
       ax25_kernel: '$AX25_KERNEL',
       ax25_initrd: '$AX25_INITRD',
@@ -45,7 +48,7 @@ function(num_hosts=2)
   {
     volumes: {
       results: {},
-      consoles: {},
+      state: {},
     },
     services: {
       infra: common {

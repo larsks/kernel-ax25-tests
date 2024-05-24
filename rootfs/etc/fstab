@@ -9,3 +9,4 @@ none /var/lock tmpfs defaults 0 0
 
 scripts /scripts 9p trans=virtio,version=9p2000.L 0 0
 tests /tests 9p trans=virtio,version=9p2000.L 0 0
+state /state 9p trans=virtio,version=9p2000.L 0 0
