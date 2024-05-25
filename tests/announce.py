@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 import argparse
-
+import time
 
 def parse_args():
     p = argparse.ArgumentParser()
@@ -15,7 +15,7 @@ def parse_args():
 
 def main():
     args = parse_args()
-    print(f"Incoming connection on {args.port} from {args.callsign} ({args.ssid})")
+    print(f"Incoming connection on {args.port} from {args.callsign} ({args.ssid})", flush=True)
 
 
 if __name__ == "__main__":

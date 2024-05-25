@@ -1,0 +1,12 @@
+#!/sbin/openrc-run
+
+depend() {
+  need mount9p
+}
+
+start() {
+  if [ -f /vol/state/hosts ]; then
+    echo "adding hosts to /etc/hosts"
+    cat /vol/state/hosts >> /etc/hosts
+  fi
+}

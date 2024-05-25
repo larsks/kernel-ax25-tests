@@ -1,0 +1,11 @@
+#!/sbin/openrc-run
+
+start() {
+  for ttypath in /sys/firmware/qemu_fw_cfg/by_name/opt/bashtty/*; do
+    ttyname=${ttypath##*/}
+    echo "starting bash shell on $ttyname"
+    echo "$ttyname::respawn:/bin/bash" >> /etc/inittab
+  done
+
+  kill -HUP 1
+}

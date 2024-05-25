@@ -1,5 +1,7 @@
 #!/bin/bash
 
+: "${ax25_num_hosts:=1}"
+
 rm -rf /state/*
 
 ip link add br0 type bridge
@@ -12,6 +14,22 @@ rm -f /root/.ssh/id_rsa
 ssh-keygen -t rsa -b 4096 -N '' -f /root/.ssh/id_rsa
 cp /root/.ssh/id_rsa.pub /state/
 
-webdir=$(mktemp -d /tmp/webXXXXXX)
-echo OK >"$webdir/health"
-darkhttpd "$webdir" --port 8080 --log /dev/null
+rm -f /state/hosts
+for ((i = 0; i < ax25_num_hosts; i++)); do
+	hostname=host$i
+	addr=192.168.168.$((10 + i))
+	echo "$addr $hostname" >>/state/hosts
+done
+
+cat /state/hosts >>/etc/hosts
+
+echo "starting $ax25_num_hosts hosts..."
+for ((i = 0; i < ax25_num_hosts; i++)); do
+	hostname=host$i
+	addr=192.168.168.$((10 + i))
+	echo "[$i] $hostname"
+
+	/scripts/start-host.sh "$hostname" "$addr" &
+done
+
+exec sleep inf

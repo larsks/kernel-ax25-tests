@@ -10,7 +10,8 @@ RUN apk add \
   openssh \
   qemu-system-x86_64 \
   socat \
-  tcpdump
+  tcpdump \
+  dnsmasq
 
 RUN bash <<EOF
 mkdir -m 700 -p /root/.ssh

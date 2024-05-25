@@ -10,8 +10,9 @@ net_user=1
 kernel_extra_args=""
 initrd="boot/initrd"
 kernel="boot/vmlinuz"
+memory=1G
 
-while getopts i:b:a:nk:f: ch; do
+while getopts i:b:a:nk:f:m: ch; do
 	case $ch in
 	f)
 		fwcfg+=("$OPTARG")
@@ -41,6 +42,10 @@ while getopts i:b:a:nk:f: ch; do
 		kernel_extra_args="${kernel_extra_args:+${kernel_extra_args} }$OPTARG"
 		;;
 
+	m)
+		memory=$OPTARG
+		;;
+
 	*)
 		exit 2
 		;;
@@ -58,7 +63,7 @@ for x in "${fwcfg[@]}"; do
 	fwcfg_args+=(-fw_cfg "name=$fwcfg_name,string=$fwcfg_val")
 done
 
-exec qemu-system-x86_64 -enable-kvm -m 4g \
+exec qemu-system-x86_64 -enable-kvm -m "$memory" \
 	-kernel "$kernel" \
 	-append "hostname=linux console=tty0 console=ttyS0,115200 no_timer_check net.ifnames=0 rw ${kernel_extra_args}" \
 	-initrd "$initrd" \

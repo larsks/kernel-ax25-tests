@@ -9,6 +9,7 @@ set -eu
 hostname="$1"
 ipaddr="$2"
 netmask="${3:-255.255.255.0}"
+gateway="${ipaddr%.*}.1"
 
 if [[ -z $hostname ]] || [[ -z $ipaddr ]]; then
 	echo "$0: usage: $0 <hostname> <address> <netmask>" >&2
@@ -32,11 +33,11 @@ fi
 
 env | grep -i ax25 >"/state/$hostname/ax25testconf"
 
-echo "starting host $hostname" >&2
 /scripts/runkernel.sh \
+	-n \
 	-k "$ax25_kernel" \
 	-i "$ax25_initrd" \
-	-a "hostname=${hostname} ip=${ipaddr}:::${netmask}:${hostname}::off" \
+	-a "hostname=${hostname} ip=${ipaddr}::${gateway}:${netmask}:${hostname}::off" \
 	-b /scripts:scripts \
 	-b /tests:tests \
 	-b /state:state \
@@ -48,4 +49,5 @@ echo "starting host $hostname" >&2
 	-serial "file:/results/${hostname}/output.log" \
 	-serial "unix:/state/${hostname}/shell,server,nowait" \
 	-netdev tap,id=tap0,ifname="$tapname",script=no,downscript=no \
-	-device "virtio-net-pci,netdev=tap0,mac=${mac_address}"
+	-device "virtio-net-pci,netdev=tap0,mac=${mac_address}" \
+	--pidfile "/state/$hostname/pid" >"/results/$hostname/qemu.out" 2>"/results/$hostname/qemu.err"

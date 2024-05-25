@@ -7,10 +7,8 @@ RUN apk update && \
     ax25-apps \
     iproute2 \
     net-tools \
-    vim \
     procps \
     curl \
-    tmux \
     openssh \
     openrc \
     socat \
@@ -28,4 +26,5 @@ rc-update add sshd default
 rc-update add install-ssh-keys default
 rc-update add mount9p default
 rc-update add bashtty default
+rc-update add addhosts default
 EOF
