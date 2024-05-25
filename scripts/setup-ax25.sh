@@ -89,4 +89,4 @@ default  * * * * * *  - root  /vol/tests/announce.py announce.py --port %d --cal
 ping  * * * * * *  - root  /usr/sbin/axwrapper axwrapper -- /vol/tests/pingpong.py pingpong.py
 EOF
 
-ax25d -l
+ax25d -l >/dev/null </dev/null 2>&1
