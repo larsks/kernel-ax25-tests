@@ -85,8 +85,8 @@ kissparms -p udp1 -c 1
 
 cat >/etc/ax25/ax25d.conf <<EOF
 [udp0]
-default  * * * * * *  - root  /usr/sbin/axwrapper axwrapper -- /tests/announce.py --port %d --callsign %u --ssid %s
-ping  * * * * * *  - root  /usr/sbin/axwrapper axwrapper -- /tests/pingpong.py pingpong.py
+default  * * * * * *  - root  /vol/tests/announce.py announce.py --port %d --callsign %u --ssid %s
+ping  * * * * * *  - root  /usr/sbin/axwrapper axwrapper -- /vol/tests/pingpong.py pingpong.py
 EOF
 
 ax25d -l
