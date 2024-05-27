@@ -1,0 +1,165 @@
+{
+   "services": {
+      "host0": {
+         "build": {
+            "context": "."
+         },
+         "cap_add": [
+            "NET_ADMIN"
+         ],
+         "command": [
+            "bash",
+            "/scripts/run-host.sh",
+            "1000",
+            "host0",
+            "192.168.168.10"
+         ],
+         "depends_on": {
+            "infra": {
+               "condition": "service_healthy"
+            }
+         },
+         "devices": [
+            "/dev/net/tun",
+            "/dev/kvm"
+         ],
+         "environment": {
+            "ax25_host_index": "0",
+            "ax25_initrd": "$AX25_INITRD",
+            "ax25_kernel": "$AX25_KERNEL",
+            "ax25_num_hosts": "3"
+         },
+         "init": true,
+         "network_mode": "service:infra",
+         "restart": "always",
+         "volumes": [
+            "./scripts:/scripts",
+            "./boot:/boot",
+            "./tests:/tests",
+            "results:/results",
+            "state:/state"
+         ]
+      },
+      "host1": {
+         "build": {
+            "context": "."
+         },
+         "cap_add": [
+            "NET_ADMIN"
+         ],
+         "command": [
+            "bash",
+            "/scripts/run-host.sh",
+            "1001",
+            "host1",
+            "192.168.168.11"
+         ],
+         "depends_on": {
+            "infra": {
+               "condition": "service_healthy"
+            }
+         },
+         "devices": [
+            "/dev/net/tun",
+            "/dev/kvm"
+         ],
+         "environment": {
+            "ax25_host_index": "1",
+            "ax25_initrd": "$AX25_INITRD",
+            "ax25_kernel": "$AX25_KERNEL",
+            "ax25_num_hosts": "3"
+         },
+         "init": true,
+         "network_mode": "service:infra",
+         "restart": "always",
+         "volumes": [
+            "./scripts:/scripts",
+            "./boot:/boot",
+            "./tests:/tests",
+            "results:/results",
+            "state:/state"
+         ]
+      },
+      "host2": {
+         "build": {
+            "context": "."
+         },
+         "cap_add": [
+            "NET_ADMIN"
+         ],
+         "command": [
+            "bash",
+            "/scripts/run-host.sh",
+            "1002",
+            "host2",
+            "192.168.168.12"
+         ],
+         "depends_on": {
+            "infra": {
+               "condition": "service_healthy"
+            }
+         },
+         "devices": [
+            "/dev/net/tun",
+            "/dev/kvm"
+         ],
+         "environment": {
+            "ax25_host_index": "2",
+            "ax25_initrd": "$AX25_INITRD",
+            "ax25_kernel": "$AX25_KERNEL",
+            "ax25_num_hosts": "3"
+         },
+         "init": true,
+         "network_mode": "service:infra",
+         "restart": "always",
+         "volumes": [
+            "./scripts:/scripts",
+            "./boot:/boot",
+            "./tests:/tests",
+            "results:/results",
+            "state:/state"
+         ]
+      },
+      "infra": {
+         "build": {
+            "context": "."
+         },
+         "cap_add": [
+            "NET_ADMIN"
+         ],
+         "command": [
+            "bash",
+            "/scripts/setup-infra.sh"
+         ],
+         "devices": [
+            "/dev/net/tun",
+            "/dev/kvm"
+         ],
+         "environment": {
+            "ax25_num_hosts": "3"
+         },
+         "healthcheck": {
+            "interval": "5s",
+            "test": [
+               "CMD",
+               "curl",
+               "-Ssf",
+               "http://localhost:8080/health"
+            ]
+         },
+         "init": true,
+         "restart": "always",
+         "volumes": [
+            "./scripts:/scripts",
+            "./boot:/boot",
+            "./tests:/tests",
+            "results:/results",
+            "state:/state"
+         ]
+      }
+   },
+   "volumes": {
+      "results": { },
+      "state": { }
+   }
+}
