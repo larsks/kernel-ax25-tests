@@ -35,14 +35,13 @@ on() {
 	local target=$1
 	shift
 	# shellcheck disable=SC2154
-	ssh -i "$tmpdir/id_rsa" "$target" "${@:-bash}"
+	ssh -i "$ssh_private_key" "$target" "${@:-bash}"
 }
 
 #-a "hostname=${hostname} ip=${ipaddr}::${gateway}:${netmask}:${hostname}::off" \
 start_one_host() {
-	local host_index=$1
-	local hostname=$2
-	local ipaddr=$3
+	local hostname=$1
+	local ipaddr=$2
 
 	echo "start host $hostname"
 	mkdir -p "$tmpdir/$hostname"
@@ -73,8 +72,7 @@ start_one_host() {
 		$(qemu_bind_path "/results" results) \
 		&
 
-	# wait for ssh to be ready
-	while ! ssh -i "$tmpdir/id_rsa" "$ipaddr" true >/dev/null 2>&1; do
+	while ! ssh -i "$ssh_private_key" "$hostname" true >/dev/null 2>&1; do
 		echo "waiting for $hostname"
 		sleep 1
 	done
@@ -95,11 +93,11 @@ start_hosts() {
 		echo "$ipaddr $hostname" >>"$tmpdir/hosts"
 	done
 
-	for ((i = 0; i < num_hosts; i++)); do
-		start_one_host "$i" "${hostnames[$i]}" "${hostaddrs[$i]}"
-	done
-
 	cat "$tmpdir/hosts" >>/etc/hosts
+
+	for ((i = 0; i < num_hosts; i++)); do
+		start_one_host "${hostnames[$i]}" "${hostaddrs[$i]}"
+	done
 }
 
 stop_all_hosts() {
@@ -129,8 +127,10 @@ stop_one_host() {
 
 	ip link del "$hostname" || :
 
-	sed "/$hostname /d" /etc/hosts >"$tmpdir/cleanhosts"
-	cat "$tmpdir/cleanhosts" >/etc/hosts
+	cleanhosts=$(mktemp "$tmpdir/hostsXXXXXX")
+	sed "/$hostname /d" /etc/hosts >"$cleanhosts"
+	cat "$cleanhosts" >/etc/hosts
+	rm -f "$cleanhosts"
 }
 
 setup_test_network() {
@@ -150,6 +150,7 @@ setup_ssh_credentials() {
 	if ! [[ -f $tmpdir/id_rsa ]]; then
 		ssh-keygen -qN '' -f "$tmpdir/id_rsa"
 	fi
+	ssh_private_key="$tmpdir/id_rsa"
 }
 
 qemu_bind_path() {
