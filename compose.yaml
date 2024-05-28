@@ -18,8 +18,6 @@ services:
       - ./scripts:/scripts
       - ./boot:/boot
       - ./tests:/tests
-      - results:/results
-      - state:/state
+      - ./results:/results
 volumes:
-  results: {}
   state: {}
