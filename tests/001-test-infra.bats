@@ -1,24 +1,28 @@
 #!/bin/bash
+#
+# The tests in this file test the test infratsructure: they ensure networking
+# is configured correctly and that we are successfully exposing host
+# directories into the virtual machines.
 
 . tests/testlib.sh
 
 setup_file() {
+	tmpdir=$(mktemp -d /tmp/testXXXXXX)
+
 	calculate_network_vars
 	setup_test_network
+	setup_ssh_credentials
+	start_hosts 2
+
+	# Variables defined in setup_file must be exported to be visible
+	# in subsequent tests.
+	export tmpdir
+	export ssh_private_key
 }
 
 teardown_file() {
-	teardown_test_network
-}
-
-setup() {
-	tmpdir=$(mktemp -d /tmp/testXXXXXX)
-	setup_ssh_credentials
-	start_hosts 2
-}
-
-teardown() {
 	stop_all_hosts
+	teardown_test_network
 	rm -rf "$tmpdir"
 }
 
