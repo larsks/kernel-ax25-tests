@@ -6,7 +6,7 @@ services:
       - NET_ADMIN
     command:
       - bats
-      - /tests
+      - ${TEST_TARGET:-/tests}
     environment:
       BATS_TEST_TIMEOUT: "300"
     devices:
