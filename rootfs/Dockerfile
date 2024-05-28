@@ -13,8 +13,8 @@ RUN apk update && \
     openrc \
     socat \
     netcat-openbsd \
-    python3 \
-    util-linux
+    util-linux \
+    tcpdump
 
 RUN sed -i '/^#\?PermitRootLogin/ s/.*/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config
 
