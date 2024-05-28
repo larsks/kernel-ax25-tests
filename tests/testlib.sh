@@ -70,7 +70,7 @@ start_one_host() {
 		$(qemu_bind_path "$tmpdir" state) \
 		$(qemu_bind_path "/scripts" scripts) \
 		$(qemu_bind_path "/results" results) \
-		&
+		>"$tmpdir/$hostname/qemu.out" 2>"$tmpdir/$hostname/qemu.err" &
 
 	while ! ssh -i "$ssh_private_key" "$hostname" true >/dev/null 2>&1; do
 		echo "waiting for $hostname"
