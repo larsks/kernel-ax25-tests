@@ -19,5 +19,3 @@ services:
       - ./boot:/boot
       - ./tests:/tests
       - ./results:/results
-volumes:
-  state: {}
