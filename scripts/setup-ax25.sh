@@ -82,11 +82,3 @@ kissattach "$ptyudp0" udp0
 kissparms -p udp0 -c 1
 kissattach "$ptyudp1" udp1
 kissparms -p udp1 -c 1
-
-cat >/etc/ax25/ax25d.conf <<EOF
-[udp0]
-default  * * * * * *  - root  /vol/tests/announce.py announce.py --port %d --callsign %u --ssid %s
-ping  * * * * * *  - root  /usr/sbin/axwrapper axwrapper -- /vol/tests/pingpong.py pingpong.py
-EOF
-
-ax25d -l >/dev/null </dev/null 2>&1
