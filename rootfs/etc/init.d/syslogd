@@ -1,0 +1,7 @@
+#!/sbin/openrc-run
+
+start() {
+  ebegin "starting syslogd"
+  syslogd -K
+  eend $?
+}

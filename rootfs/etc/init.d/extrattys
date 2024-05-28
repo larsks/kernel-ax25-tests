@@ -3,10 +3,13 @@
 start() {
   for ttypath in /sys/firmware/qemu_fw_cfg/by_name/opt/ttytab/*; do
     ttyname=${ttypath##*/}
-    ttycommand=$(cat $ttypath)
-    echo "configuring $ttyname"
+    ttycommand=$(cat $ttypath/raw)
+    ebegin "configuring $ttyname to run $ttycommand"
     echo "$ttyname::respawn:$ttycommand" >> /etc/inittab
+    eend $?
   done
 
+  ebegin "reloading init"
   kill -HUP 1
+  eend $?
 }

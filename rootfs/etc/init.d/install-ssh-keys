@@ -13,8 +13,9 @@ start() {
   fi
 
 	if [ -f /vol/state/id_rsa.pub ]; then
-    echo "installing root authorized_keys"
-		cat /vol/state/id_rsa.pub >>/root/.ssh/authorized_keys
-		chmod 600 /root/.ssh/authorized_keys
+    ebegin "installing root authorized_keys"
+		cat /vol/state/id_rsa.pub >>/root/.ssh/authorized_keys && \
+      chmod 600 /root/.ssh/authorized_keys
+    eend $?
 	fi
 }

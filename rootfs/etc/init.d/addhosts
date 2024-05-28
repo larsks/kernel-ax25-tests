@@ -6,7 +6,8 @@ depend() {
 
 start() {
   if [ -f /vol/state/hosts ]; then
-    echo "adding hosts to /etc/hosts"
+    ebegin "adding hosts to /etc/hosts"
     cat /vol/state/hosts >> /etc/hosts
+    eend $?
   fi
 }

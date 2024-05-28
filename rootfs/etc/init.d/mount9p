@@ -7,8 +7,9 @@ start() {
     [ "$tag" = root ] && continue
     mkdir -p "/vol/$tag"
 
-    echo "mount virtiofs $tag on /vol/$tag"
+    ebegin "mount virtiofs $tag on /vol/$tag"
     mount -t 9p -o version=9p2000.L,trans=virtio "$tag" "/vol/$tag"
+    eend $?
   done
 }
 
@@ -19,8 +20,9 @@ stop() {
     [ "$tag" = root ] && continue
 
     if findmnt --mountpoint "/vol/$tag" > /dev/null; then
-      echo "unmount virtiofs $tag from /vol/$tag"
+      ebegin "unmount virtiofs $tag from /vol/$tag"
       umount "/vol/$tag"
+      eend $?
     fi
   done
 }
