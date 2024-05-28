@@ -70,6 +70,7 @@ start_one_host() {
 		-device "virtio-net-pci,netdev=tap0,mac=${mac_address}" \
 		$(qemu_bind_path "$tmpdir" state) \
 		$(qemu_bind_path "/scripts" scripts) \
+		$(qemu_bind_path "/results" results) \
 		&
 
 	# wait for ssh to be ready
