@@ -54,7 +54,7 @@ cat > /etc/ax25/ax25d.conf <<END_AX25D
 [udp0]
 default  * * * * * *  - root  /bin/echo echo AX25 TEST OUTPUT
 END_AX25D
-nohup listen -a > "$tmpdir/axlisten.out" 2>&1 &
+nohup listen -a > "/vol/state/axlisten.out" 2>"/vol/state/axlisten.err"
 EOF
 	for i in {1..30}; do
 		echo "connection attemp $i"
