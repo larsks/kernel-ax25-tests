@@ -2,3 +2,4 @@
 
 mkmntdirs /etc/fstab
 mount -a
+ip link set lo up

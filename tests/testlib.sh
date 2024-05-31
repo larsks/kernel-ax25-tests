@@ -114,16 +114,16 @@ stop_one_host() {
 	host_index=$1
 	hostname="host${host_index}"
 
+	echo "stop host $hostname"
+
 	if [[ -S $tmpdir/$hostname/monitor ]]; then
 		echo quit | nc -UN "$tmpdir/$hostname/monitor"
 	fi
 
-	if [[ -f $tmpdir/$hostname/pid ]]; then
-		pid="$(cat "$tmpdir/$hostname/pid")"
-		while kill -0 "$pid"; do
-			sleep 0.5
-		done
-	fi
+	# wait for qemu to exit
+	while [[ -f "$tmpdir/$hostname/pid" ]]; do
+		sleep 0.5
+	done
 
 	ip link del "$hostname" || :
 

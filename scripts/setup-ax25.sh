@@ -26,6 +26,8 @@
 #
 #     axcall -r udp0 node1
 
+set -e
+
 CALLSIGN=$1
 shift
 

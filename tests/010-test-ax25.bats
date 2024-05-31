@@ -13,6 +13,7 @@ teardown_file() {
 
 setup() {
 	tmpdir=$(mktemp -d /tmp/testXXXXXX)
+	chmod 755 "$tmpdir"
 	setup_ssh_credentials
 	start_hosts 2
 }
@@ -24,47 +25,49 @@ teardown() {
 	rm -rf "$tmpdir"
 }
 
-@test "we can create an ax25 connection" {
+@test "we can create a single ax25 connection" {
 	bats_require_minimum_version 1.5.0
 	on host0 <<EOF
 /vol/scripts/setup-ax25.sh host0 'host1 host1 udp 10090'
 EOF
 	on host1 <<EOF
 /vol/scripts/setup-ax25.sh host1 'host0 host0 udp 10090'
-cat > /etc/ax25/ax25d.conf <<END_AX25D
-[udp0]
-default  * * * * * *  - root  /bin/echo echo AX25 TEST OUTPUT
-END_AX25D
+cat >> /etc/inittab <<END_INITTAB
+::respawn:/usr/sbin/helloax25 udp0
+END_INITTAB
+kill -HUP 1
+sleep 1
 EOF
 	on host0 <<EOF >"$tmpdir/stdout" 2>"$tmpdir/stderr"
 call -SRr udp0 host1
 EOF
-	run grep 'AX25 TEST OUTPUT' "$tmpdir/stdout"
-	run ! grep -qE -- 'waiting for.*to become free|--[ cut here ]--' "$tmpdir/*/console"
+	run -0 grep 'HELLO AX.25 CALLER' "$tmpdir/stdout"
+	run -1 grep -qE -- 'waiting for.*to become free|--[ cut here ]--' "$tmpdir"/*/console
 }
 
-@test "we can create many ax25 connections" {
+@test "we can create multiple ax25 connections" {
 	bats_require_minimum_version 1.5.0
 	on host0 <<EOF
 /vol/scripts/setup-ax25.sh host0 'host1 host1 udp 10090'
 EOF
 	on host1 <<EOF
 /vol/scripts/setup-ax25.sh host1 'host0 host0 udp 10090'
-cat > /etc/ax25/ax25d.conf <<END_AX25D
-[udp0]
-default  * * * * * *  - root  /bin/echo echo AX25 TEST OUTPUT
-END_AX25D
-nohup listen -a > "/vol/state/axlisten.out" 2>"/vol/state/axlisten.err"
+cat >> /etc/inittab <<END_INITTAB
+::respawn:/usr/sbin/helloax25 udp0
+END_INITTAB
+kill -HUP 1
+sleep 1
 EOF
-	for i in {1..30}; do
-		echo "connection attemp $i"
-		on host0 <<EOF >"$tmpdir/stdout" 2>"$tmpdir/stderr"
+	on host0 <<EOF >"$tmpdir/stdout" 2>"$tmpdir/stderr"
+for i in {1..20}; do
 call -SRr udp0 host1
+sleep 8
+done
 EOF
-		run grep 'AX25 TEST OUTPUT' "$tmpdir/stdout"
-		run ! grep -qE -- 'waiting for.*to become free|--[ cut here ]--' "$tmpdir/*/console"
-
-		# need to wait for connection to expire
-		sleep 5
-	done
+	count=$(grep -c 'HELLO AX.25 CALLER' "$tmpdir/stdout")
+	if ! [[ $count = 20 ]]; then
+		echo "expected 20, got $count" >&2
+		return 1
+	fi
+	run -1 grep -qE -- 'waiting for.*to become free|--[ cut here ]--' "$tmpdir"/*/console
 }

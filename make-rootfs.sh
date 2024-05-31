@@ -1,6 +1,6 @@
 #!/bin/bash
 
-docker build --label ax25 -t ax25-rootfs rootfs
+docker build --progress=plain --label ax25 -t ax25-rootfs rootfs
 
 fakeroot bash <<'EOF'
 rootfs=$(mktemp -d rootfsXXXXXX)

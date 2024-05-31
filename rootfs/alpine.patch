@@ -1,0 +1,294 @@
+From 9c3b85ac3ec9a8b25015c03c9e90491505cf9d86 Mon Sep 17 00:00:00 2001
+From: Lars Kellogg-Stedman <lars@oddbit.com>
+Date: Tue, 28 May 2024 23:10:52 -0400
+Subject: [PATCH 1/6] Use termios instead of termio for ax25ipd
+
+Some systems have only the POSIX termios interface and do not provide the
+legacy SysV termio interface. This commit allows ax25ipd to build
+successfully in such an environment.
+---
+ ax25apps/ax25ipd/io.c | 4 ++--
+ ax25apps/configure.ac | 2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/ax25apps/ax25ipd/io.c b/ax25apps/ax25ipd/io.c
+index a818dca..437adc6 100644
+--- a/ax25apps/ax25ipd/io.c
++++ b/ax25apps/ax25ipd/io.c
+@@ -19,7 +19,7 @@
+ #include <stdlib.h>
+ #include <string.h>
+ #include <syslog.h>
+-#include <termio.h>
++#include <termios.h>
+ #include <time.h>
+ #include <unistd.h>
+ #include <arpa/inet.h>
+@@ -32,7 +32,7 @@
+ 
+ #include "ax25ipd.h"
+ 
+-static struct termio nterm;
++static struct termios nterm;
+ 
+ int ttyfd = -1;
+ static int udpsock = -1;
+diff --git a/ax25apps/configure.ac b/ax25apps/configure.ac
+index cd29318..24f75c1 100644
+--- a/ax25apps/configure.ac
++++ b/ax25apps/configure.ac
+@@ -25,7 +25,7 @@ AC_CHECK_LIB(ncursesw, initscr, NCURSES_LIB="-lncursesw", AC_MSG_ERROR(Could not
+ AC_HEADER_DIRENT
+ AC_HEADER_SYS_WAIT
+ AC_INCLUDES_DEFAULT # Checks for sys/types.h, sys/stat.h, stdlib.h, string.h, memory.h, strings.h, inttypes.h, stdint.h and unistd.h
+-AC_CHECK_HEADERS([arpa/inet.h fcntl.h limits.h memory.h netdb.h netinet/in.h sys/ioctl.h sys/socket.h sys/time.h syslog.h termio.h termios.h utime.h ncursesw/curses.h],,AC_MSG_ERROR([Required headers missing; aborting]))
++AC_CHECK_HEADERS([arpa/inet.h fcntl.h limits.h memory.h netdb.h netinet/in.h sys/ioctl.h sys/socket.h sys/time.h syslog.h termios.h utime.h ncursesw/curses.h],,AC_MSG_ERROR([Required headers missing; aborting]))
+ 
+ # Checks for typedefs, structures, and compiler characteristics.
+ AC_C_CONST
+-- 
+2.45.1
+
+
+From b8d5e1ede439113d0920caea2bd8a6c043caff48 Mon Sep 17 00:00:00 2001
+From: Lars Kellogg-Stedman <lars@oddbit.com>
+Date: Tue, 28 May 2024 23:29:18 -0400
+Subject: [PATCH 2/6] Replace TCSETA/TCGETA with tcsetattr/tcgetattr
+
+The TCGETA and TCSETA ioctls are deprecated in favor of tcgetattr() and
+tcsetattr(). This commit replaces:
+
+    ioctl(ttyfd, TCGETA, ...)
+
+With:
+
+    tcgettattr(ttyfd, TCSANOW, ...)
+
+And similarly for TCSETA/tcsetattr().
+---
+ ax25apps/ax25ipd/io.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/ax25apps/ax25ipd/io.c b/ax25apps/ax25ipd/io.c
+index 437adc6..787b0be 100644
+--- a/ax25apps/ax25ipd/io.c
++++ b/ax25apps/ax25ipd/io.c
+@@ -339,7 +339,7 @@ void io_open(void)
+ 		set_bpq_dev_call_and_up(ttydevice);
+ 		goto behind_normal_tty;
+ 	}
+-	if (ioctl(ttyfd, TCGETA, &nterm) < 0) {
++	if (tcgetattr(ttyfd, &nterm) < 0) {
+ 		perror("fetching tty device parameters");
+ 		exit(1);
+ 	}
+@@ -476,7 +476,7 @@ void io_open(void)
+ 	nterm.c_cc[VMIN] = 0;
+ 	nterm.c_cc[VTIME] = 0;
+ 
+-	if (ioctl(ttyfd, TCSETA, &nterm) < 0) {
++	if (tcsetattr(ttyfd, TCSANOW, &nterm) < 0) {
+ 		perror("setting tty device parameters");
+ 		exit(1);
+ 	}
+-- 
+2.45.1
+
+
+From da5042db7782d6e12f7e1a79ae65eff47f6412c2 Mon Sep 17 00:00:00 2001
+From: Lars Kellogg-Stedman <lars@oddbit.com>
+Date: Tue, 28 May 2024 23:19:06 -0400
+Subject: [PATCH 3/6] Replace ncursesw/curses.h with ncurses.h
+
+On some systems (notably Alpine Linux), there is no /usr/include/ncursesw.
+However, even on systems on which it exists, the contents are often
+symlinks to files in /usr/include.
+
+It looks like we can replace:
+
+    #include <ncursesw/curses.h>
+
+With:
+
+    #include <ncurses.h>
+
+Without breaking anything (and enable successful builds on systems on which
+/usr/include/ncursesw does not exist).
+---
+ ax25apps/call/call.c     | 2 +-
+ ax25apps/call/menu.c     | 2 +-
+ ax25apps/configure.ac    | 2 +-
+ ax25apps/listen/listen.c | 2 +-
+ ax25apps/listen/utils.c  | 2 +-
+ 5 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/ax25apps/call/call.c b/ax25apps/call/call.c
+index ad36e5e..d31b8b0 100644
+--- a/ax25apps/call/call.c
++++ b/ax25apps/call/call.c
+@@ -42,7 +42,7 @@
+ #include <unistd.h>
+ #include <wchar.h>
+ #include <wctype.h>
+-#include <ncursesw/ncurses.h>
++#include <ncurses.h>
+ #include <locale.h>
+ #include <iconv.h>
+ #include <sys/ioctl.h>
+diff --git a/ax25apps/call/menu.c b/ax25apps/call/menu.c
+index 82d6620..5c08a17 100644
+--- a/ax25apps/call/menu.c
++++ b/ax25apps/call/menu.c
+@@ -9,7 +9,7 @@
+ #define _XOPEN_SOURCE
+ #define _XOPEN_SOURCE_EXTENDED
+ 
+-#include <ncursesw/curses.h>
++#include <ncurses.h>
+ #include <stdlib.h>
+ #include <string.h>
+ #include "menu.h"
+diff --git a/ax25apps/configure.ac b/ax25apps/configure.ac
+index 24f75c1..f913e05 100644
+--- a/ax25apps/configure.ac
++++ b/ax25apps/configure.ac
+@@ -25,7 +25,7 @@ AC_CHECK_LIB(ncursesw, initscr, NCURSES_LIB="-lncursesw", AC_MSG_ERROR(Could not
+ AC_HEADER_DIRENT
+ AC_HEADER_SYS_WAIT
+ AC_INCLUDES_DEFAULT # Checks for sys/types.h, sys/stat.h, stdlib.h, string.h, memory.h, strings.h, inttypes.h, stdint.h and unistd.h
+-AC_CHECK_HEADERS([arpa/inet.h fcntl.h limits.h memory.h netdb.h netinet/in.h sys/ioctl.h sys/socket.h sys/time.h syslog.h termios.h utime.h ncursesw/curses.h],,AC_MSG_ERROR([Required headers missing; aborting]))
++AC_CHECK_HEADERS([arpa/inet.h fcntl.h limits.h memory.h netdb.h netinet/in.h sys/ioctl.h sys/socket.h sys/time.h syslog.h termios.h utime.h ncurses.h],,AC_MSG_ERROR([Required headers missing; aborting]))
+ 
+ # Checks for typedefs, structures, and compiler characteristics.
+ AC_C_CONST
+diff --git a/ax25apps/listen/listen.c b/ax25apps/listen/listen.c
+index 4553f87..cc3e9ee 100644
+--- a/ax25apps/listen/listen.c
++++ b/ax25apps/listen/listen.c
+@@ -8,7 +8,7 @@
+ #include <string.h>
+ #include <time.h>
+ #include <sys/time.h>
+-#include <ncursesw/curses.h>
++#include <ncurses.h>
+ #include <signal.h>
+ #include <errno.h>
+ 
+diff --git a/ax25apps/listen/utils.c b/ax25apps/listen/utils.c
+index 2a59076..4ac1e7e 100644
+--- a/ax25apps/listen/utils.c
++++ b/ax25apps/listen/utils.c
+@@ -8,7 +8,7 @@
+ #include <stdio.h>
+ #include <stdarg.h>
+ #include <stdlib.h>
+-#include <ncursesw/curses.h>
++#include <ncurses.h>
+ #include <netdb.h>
+ #include <netinet/in.h>
+ #include <string.h>
+-- 
+2.45.1
+
+
+From 64ed770268080b6a2299265bfbd6722dcdb03a84 Mon Sep 17 00:00:00 2001
+From: Lars Kellogg-Stedman <lars@oddbit.com>
+Date: Tue, 28 May 2024 23:37:33 -0400
+Subject: [PATCH 4/6] Add missing include for time.h to call/call.h
+
+ax25apps/call/call.h references type `time_t`, but does not include the
+appropriate header file. This leads to the following error when building on
+alpine linux:
+
+    call.h:21:23: error: unknown type name 'time_t'
+      21 | extern void unix2yapp(time_t unix_date, char *buffer);
+          |                       ^~~~~~
+    call.h:1:1: note: 'time_t' is defined in header '<time.h>'; did you forget to '#include <time.h>'?
+
+This commit adds the missing #include for <time.h>.
+---
+ ax25apps/call/dostime.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/ax25apps/call/dostime.c b/ax25apps/call/dostime.c
+index cb701a7..bc232dc 100644
+--- a/ax25apps/call/dostime.c
++++ b/ax25apps/call/dostime.c
+@@ -6,6 +6,7 @@
+ #include <string.h>
+ #include <stdlib.h>
+ #include <stdio.h>
++#include <time.h>
+ 
+ #include "call.h"
+ 
+-- 
+2.45.1
+
+
+From 9b2fa2d359897372844f33512650b2bd13eb57b2 Mon Sep 17 00:00:00 2001
+From: Lars Kellogg-Stedman <lars@oddbit.com>
+Date: Thu, 30 May 2024 18:04:40 -0400
+Subject: [PATCH 5/6] Always use time.h in ax25rtd/listener.c
+
+Some systems define the time() function in <time.h>. When building ax25rtd,
+this results in:
+
+    listener.c: In function 'ax25_receive':
+    listener.c:405:17: error: implicit declaration of function 'time' [-Wimplicit-function-declaration]
+      405 |         stamp = time(NULL);
+          |                 ^~~~
+    listener.c:47:1: note: 'time' is defined in header '<time.h>'; this is probably fixable by adding '#include <time.h>'
+
+This commit modifies listener.c to *always* include <time.h>, rather than
+having that be conditional on TIME_WITH_SYS_TIME.
+---
+ ax25apps/ax25rtd/listener.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/ax25apps/ax25rtd/listener.c b/ax25apps/ax25rtd/listener.c
+index dafd7e2..073944d 100644
+--- a/ax25apps/ax25rtd/listener.c
++++ b/ax25apps/ax25rtd/listener.c
+@@ -29,9 +29,7 @@
+ #include <unistd.h>
+ #include <signal.h>
+ #include <sys/ioctl.h>
+-#ifdef TIME_WITH_SYS_TIME
+ #include <time.h>
+-#endif
+ #include <sys/time.h>
+ #include <netinet/in.h>
+ #include <net/route.h>
+-- 
+2.45.1
+
+
+From 6741b3a5c211907381eeb90d722543222af30c22 Mon Sep 17 00:00:00 2001
+From: Lars Kellogg-Stedman <lars@oddbit.com>
+Date: Thu, 30 May 2024 21:35:53 -0400
+Subject: [PATCH 6/6] Close file descriptors when daemonizing
+
+---
+ libax25/lib/ax25/daemon.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/libax25/lib/ax25/daemon.c b/libax25/lib/ax25/daemon.c
+index dcc5669..8fa5425 100644
+--- a/libax25/lib/ax25/daemon.c
++++ b/libax25/lib/ax25/daemon.c
+@@ -29,6 +29,11 @@ int daemon_start(int ignsigcld)
+ 	signal(SIGTTIN, SIG_IGN);
+ 	signal(SIGTSTP, SIG_IGN);
+ 
++  /* Close stdin, stdout, stderr */
++  fclose(stdin);
++  fclose(stdout);
++  fclose(stderr);
++
+ 	/* Fork and let parent exit, insures we're not a process group leader */
+ 	if ((childpid = fork()) < 0) {
+ 		return 0;
+-- 
+2.45.1
+
